@@ -1,11 +1,106 @@
 /********************************************************************************
- * 自動ルビティラノスクリプトプラグイン ver1.0.0
+ * 自動ルビティラノスクリプトプラグイン ver1.1.0
  *
  * @since 2024/11/11
  * @author Kei Yusu
  *
  *********************************************************************************/
 (() => {
+
+  /********************************************************************************
+   * ルビ設定タグ作成
+   *
+   * @param font: フォント
+   * @param size: サイズ
+   * @param color 色
+   * @since 2024/11/22
+   * @author Kei Yusu
+   * 
+   *********************************************************************************/
+  const rb_config = {
+    kag: TYRANO.kag,
+    vital: [],
+    pm: {
+      font: "",
+      size: "",
+      color: "",
+    },
+    start : function(pm) {
+
+      // ルビ設定がない場合
+      if(TYRANO.kag.variable.sf.auto_ruby_config == undefined){
+
+        // ルビ設定を初期値で作成
+        TYRANO.kag.variable.sf.auto_ruby_config = {font: TYRANO.kag.config.userFace, size: "", color: ""};
+
+      }
+
+      // フォント指定があった場合
+      if(pm.font){
+
+        // 初期値指定の場合
+        if(pm.font == "default"){
+
+          // フォント設定(初期値)
+          TYRANO.kag.variable.sf.auto_ruby_config.font = TYRANO.kag.config.userFace;
+
+        // その他の場合
+        }else{
+
+          // フォント設定
+          TYRANO.kag.variable.sf.auto_ruby_config.font = pm.font;
+
+        }
+
+      }
+
+      // サイズ指定があった場合
+      if(pm.size){
+
+        // 初期値指定の場合
+        if(pm.size == "default"){
+
+          // サイズ設定（初期値）
+          TYRANO.kag.variable.sf.auto_ruby_config.size = "";
+
+        // その他の場合
+        }else{
+
+          // サイズ設定
+          TYRANO.kag.variable.sf.auto_ruby_config.size = pm.size;
+
+        }
+
+      }
+
+      // 色指定があった場合
+      if(pm.color){
+
+        // 初期値指定の場合
+        if(pm.size == "default"){
+
+          // 色設定（初期値）
+          TYRANO.kag.variable.sf.auto_ruby_config.color = "";
+
+        // その他の場会
+        }else{
+
+          // 色設定
+          TYRANO.kag.variable.sf.auto_ruby_config.color = $.convertColor(pm.color);
+
+        }
+
+      }
+
+      // 次のタグへ
+      this.kag.ftag.nextOrder();
+
+    }
+  }
+
+  // ルビ設定タグ追加
+  TYRANO.kag.ftag.master_tag.rb_config = object(rb_config);
+  TYRANO.kag.ftag.master_tag.rb_config.kag = TYRANO.kag;
 
   /********************************************************************************
    * JSONファイルルビ登録タグ作成
@@ -189,6 +284,14 @@
     },
     start : function(pm) {
 
+      // ルビ設定がある場合
+      if(TYRANO.kag.variable.sf.auto_ruby_config != undefined){
+        
+        // ルビ設定削除
+        delete TYRANO.kag.variable.sf.auto_ruby_config
+
+      }
+
       // ストア配列がある場合
       if(TYRANO.kag.variable.sf.auto_ruby_store != undefined){
 
@@ -298,8 +401,28 @@
 
         }
 
+        // ルビ設定がない場合
+        if(TYRANO.kag.variable.sf.auto_ruby_config == undefined){
+
+          // ルビ設定を初期値で作成
+          TYRANO.kag.variable.sf.auto_ruby_config = {font: TYRANO.kag.config.userFace, size: "", color: ""};
+
+        }
+
+        // フォント設定取得
+        const style_font = TYRANO.kag.variable.sf.auto_ruby_config.font != "" ? `font-family: ${TYRANO.kag.variable.sf.auto_ruby_config.font};` : "";
+
+        // サイズ設定取得
+        const style_size = TYRANO.kag.variable.sf.auto_ruby_config.size != "" ? `font-size: ${TYRANO.kag.variable.sf.auto_ruby_config.size};` : "";
+
+        // 色設定取得
+        const style_color = TYRANO.kag.variable.sf.auto_ruby_config.color != "" ? `color: ${TYRANO.kag.variable.sf.auto_ruby_config.color};` : "";
+
+        // スタイル設定取得
+        const style = style_font || style_size || style_color ? `style="${style_font}${style_size}${style_color}"` : "";
+
         // ルビ対象文字列にルビを付加して追加
-        $(rubyTargetChars).append(`<ruby class='auto_ruby'>${rubytargetText}<rt class='auto_rt'>${rubyText}</rt></ruby>`)
+        $(rubyTargetChars).append(`<ruby class='auto_ruby'>${rubytargetText}<rt class='auto_rt' ${style}>${rubyText}</rt></ruby>`)
         
       }
 
