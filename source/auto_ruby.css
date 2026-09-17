@@ -1,16 +1,49 @@
 /********************************************************************************
 * 自動ルビ設定
+* 標準の<rt>要素はそのまま使い、CSSでposition:absoluteにすることで
+* ルビ表示時に行の高さが変わらない（ガクッとならない）ようにする。
+* ルビ文字は、本文の幅を文字数で均等に割った区画それぞれの中央に配置する（均等割り）。
+* ルビの方が本文より長い場合は、本文幅に収めず中央基準で左右均等にはみ出す。
+* 縦書き/横書きの切り替えは、Tyranoが親<p>に動的に付け外しする.vertical_textクラスを
+* CSS側で参照することで追従させる（ルビ生成時の状態をJSで固定しないため、
+* あとから[position vertical=...]で親の書字方向が変わっても崩れない）。
 *********************************************************************************/
 /* 自動ルビ */
 ruby.auto_ruby {
-    /* 上に表示 */
-    ruby-position: over;
+    position: relative;
+    display: inline-block;
+    /* line-heightを指定しないと周囲の（広めに設定されがちな）行間をそのまま
+       継承してしまい、rtのbottom:100%の基準位置が文字の実際の上端より
+       ずっと上になってしまう（ルビが浮いて見える）ため、明示的に詰める */
+    line-height: 1;
 }
 
 /* 自動ルビテキスト */
 rt.auto_rt {
-    text-align: match-parent;
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translateX(-50%);
+    min-width: 100%;
+    display: flex;
+    justify-content: space-around;
+    white-space: nowrap;
     color: white;
     filter: brightness(1.0);
     font-size: 50%;
+    line-height: 1;
+}
+
+/* 自動ルビテキスト（縦書き時：親.vertical_textから自動判定） */
+.vertical_text ruby.auto_ruby rt.auto_rt {
+    left: 100%;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+    min-width: 0;
+    min-height: 100%;
+    /* writing-modeを継承すると、flexのrow/column軸の意味がインライン軸(縦)/ブロック軸(横)基準に
+       入れ替わり文字順が反転するため、flex自体は横書き基準の意味に固定して縦積みにする */
+    writing-mode: horizontal-tb;
+    flex-direction: column;
 }
