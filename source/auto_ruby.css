@@ -1,7 +1,10 @@
 /********************************************************************************
 * 自動ルビ設定
-* 標準の<rt>要素はそのまま使い、CSSでposition:absoluteにすることで
-* ルビ表示時に行の高さが変わらない（ガクッとならない）ようにする。
+* <rt>要素はブラウザエンジンによって「ルビ注釈用の特殊なボックス」として扱われ、
+* position:absoluteを指定しても実際のレイアウトに反映されない（position:staticの
+* まま扱われる）実装が存在するため、通常の<span>要素でルビ文字を表現し、
+* CSSでposition:absoluteにすることで、ルビ表示時に行の高さが変わらない
+*（ガクッとならない）ようにする。
 * ルビ文字は、本文の幅を文字数で均等に割った区画それぞれの中央に配置する（均等割り）。
 * ルビの方が本文より長い場合は、本文幅に収めず中央基準で左右均等にはみ出す。
 * 縦書き/横書きの切り替えは、Tyranoが親<p>に動的に付け外しする.vertical_textクラスを
@@ -13,13 +16,16 @@ ruby.auto_ruby {
     position: relative;
     display: inline-block;
     /* line-heightを指定しないと周囲の（広めに設定されがちな）行間をそのまま
-       継承してしまい、rtのbottom:100%の基準位置が文字の実際の上端より
+       継承してしまい、ルビ文字のbottom:100%の基準位置が文字の実際の上端より
        ずっと上になってしまう（ルビが浮いて見える）ため、明示的に詰める */
     line-height: 1;
 }
 
 /* 自動ルビテキスト */
-rt.auto_rt {
+/* tooltip.cssの「.message_inner p span { position:relative; z-index:999; }」
+   （詳細度0,1,2）に position:absolute が負けないよう、ruby.auto_rubyを含めて
+   詳細度0,2,2にしている */
+ruby.auto_ruby span.auto_rt {
     position: absolute;
     left: 50%;
     bottom: 100%;
@@ -28,14 +34,16 @@ rt.auto_rt {
     display: flex;
     justify-content: space-around;
     white-space: nowrap;
-    color: white;
+    /* 決め打ちの色にせず、その場のTyranoの文字色（画面ならメッセージ文字色、
+       バックログならバックログの文字色）にそのまま合わせる */
+    color: inherit;
     filter: brightness(1.0);
     font-size: 50%;
     line-height: 1;
 }
 
 /* 自動ルビテキスト（縦書き時：親.vertical_textから自動判定） */
-.vertical_text ruby.auto_ruby rt.auto_rt {
+.vertical_text ruby.auto_ruby span.auto_rt {
     left: 100%;
     top: 50%;
     bottom: auto;

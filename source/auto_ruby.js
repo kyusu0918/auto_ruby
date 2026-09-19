@@ -1,7 +1,7 @@
 /********************************************************************************
  * 自動ルビティラノスクリプトプラグイン ver1.2.0
  *
- * @since 2026/09/18
+ * @since 2026/09/19
  * @author Kei Yusu
  *
  *********************************************************************************/
@@ -13,7 +13,10 @@
    * @param font: フォント
    * @param size: サイズ
    * @param color 色
-   * @since 2024/11/22
+   * @param backlog_font: バックログフォント
+   * @param backlog_size: バックログサイズ
+   * @param backlog_color バックログ色
+   * @since 2026/09/19
    * @author Kei Yusu
    * 
    *********************************************************************************/
@@ -24,6 +27,9 @@
       font: "",
       size: "",
       color: "",
+      backlog_font: "",
+      backlog_size: "",
+      backlog_color: "",
     },
     start : function(pm) {
 
@@ -31,7 +37,9 @@
       if(TYRANO.kag.variable.sf.auto_ruby_config == undefined){
 
         // ルビ設定を初期値で作成
-        TYRANO.kag.variable.sf.auto_ruby_config = {font: TYRANO.kag.config.userFace, size: "", color: ""};
+        // backlog_fontも、Tyrano本体がバックログ表示時に.log_bodyへ適用しているuserFaceを
+        // 初期値にする（kag.menu.jsのdisplayLog内で css("font-family", userFace) している）
+        TYRANO.kag.variable.sf.auto_ruby_config = {font: TYRANO.kag.config.userFace, size: "", color: "", backlog_font: TYRANO.kag.config.userFace, backlog_size: "", backlog_color: ""};
 
       }
 
@@ -77,7 +85,7 @@
       if(pm.color){
 
         // 初期値指定の場合
-        if(pm.size == "default"){
+        if(pm.color == "default"){
 
           // 色設定（初期値）
           TYRANO.kag.variable.sf.auto_ruby_config.color = "";
@@ -87,6 +95,63 @@
 
           // 色設定
           TYRANO.kag.variable.sf.auto_ruby_config.color = $.convertColor(pm.color);
+
+        }
+
+      }
+
+      // バックログ用フォント指定があった場合
+      if(pm.backlog_font){
+
+        // 初期値指定の場合
+        if(pm.backlog_font == "default"){
+
+          // バックログ用フォント設定（初期値、Tyrano本体がバックログに適用するuserFaceに戻す）
+          TYRANO.kag.variable.sf.auto_ruby_config.backlog_font = TYRANO.kag.config.userFace;
+
+        // その他の場合
+        }else{
+
+          // バックログ用フォント設定
+          TYRANO.kag.variable.sf.auto_ruby_config.backlog_font = pm.backlog_font;
+
+        }
+
+      }
+
+      // バックログ用サイズ指定があった場合
+      if(pm.backlog_size){
+
+        // 初期値指定の場合
+        if(pm.backlog_size == "default"){
+
+          // バックログ用サイズ設定（初期値、通常のsize設定に合わせる）
+          TYRANO.kag.variable.sf.auto_ruby_config.backlog_size = "";
+
+        // その他の場合
+        }else{
+
+          // バックログ用サイズ設定
+          TYRANO.kag.variable.sf.auto_ruby_config.backlog_size = pm.backlog_size;
+
+        }
+
+      }
+
+      // バックログ用色指定があった場合
+      if(pm.backlog_color){
+
+        // 初期値指定の場合
+        if(pm.backlog_color == "default"){
+
+          // バックログ用色設定（初期値、通常のcolor設定に合わせる）
+          TYRANO.kag.variable.sf.auto_ruby_config.backlog_color = "";
+
+        // その他の場合
+        }else{
+
+          // バックログ用色設定
+          TYRANO.kag.variable.sf.auto_ruby_config.backlog_color = $.convertColor(pm.backlog_color);
 
         }
 
@@ -143,7 +208,7 @@
           // ストア配列作成
           TYRANO.kag.variable.sf.auto_ruby_store = json;
 
-          console.log("★★★ JSON read successed ★★★:", TYRANO.kag.variable.sf.auto_ruby_store);
+          // console.log("★★★ JSON read successed ★★★:", TYRANO.kag.variable.sf.auto_ruby_store);
     
         })
         .fail((jqXHR, textStatus, errorThrown) => {
@@ -315,7 +380,7 @@
    * ルビ開始タグ作成
    *
    * @param text ルビ
-   * @since 2026/09/18
+   * @since 2026/09/17
    * @author Kei Yusu
    * 
    *********************************************************************************/
@@ -369,7 +434,7 @@
   /********************************************************************************
    * ルビ終了タグ作成
    *
-   * @since 2026/09/18
+   * @since 2026/09/17
    * @author Kei Yusu
    * 
    *********************************************************************************/
@@ -414,7 +479,9 @@
         if(TYRANO.kag.variable.sf.auto_ruby_config == undefined){
 
           // ルビ設定を初期値で作成
-          TYRANO.kag.variable.sf.auto_ruby_config = {font: TYRANO.kag.config.userFace, size: "", color: ""};
+          // backlog_fontも、Tyrano本体がバックログ表示時に.log_bodyへ適用しているuserFaceを
+          // 初期値にする（kag.menu.jsのdisplayLog内で css("font-family", userFace) している）
+          TYRANO.kag.variable.sf.auto_ruby_config = {font: TYRANO.kag.config.userFace, size: "", color: "", backlog_font: TYRANO.kag.config.userFace, backlog_size: "", backlog_color: ""};
 
         }
 
@@ -430,13 +497,30 @@
         // スタイル設定取得
         const style = style_font || style_size || style_color ? `style="${style_font}${style_size}${style_color}"` : "";
 
+        // バックログ用フォント設定取得（未指定の場合は指定なし＝バックログ側のデフォルトに任せる）
+        const backlog_style_font = TYRANO.kag.variable.sf.auto_ruby_config.backlog_font != "" ? `font-family: ${TYRANO.kag.variable.sf.auto_ruby_config.backlog_font};` : "";
+
+        // バックログ用サイズ設定取得（未指定の場合は指定なし＝バックログ側のデフォルトに任せる）
+        const backlog_style_size = TYRANO.kag.variable.sf.auto_ruby_config.backlog_size != "" ? `font-size: ${TYRANO.kag.variable.sf.auto_ruby_config.backlog_size};` : "";
+
+        // バックログ用色設定取得（未指定の場合は指定なし＝バックログ側のデフォルトに任せる）
+        const backlog_style_color = TYRANO.kag.variable.sf.auto_ruby_config.backlog_color != "" ? `color: ${TYRANO.kag.variable.sf.auto_ruby_config.backlog_color};` : "";
+
+        // バックログ用スタイル設定取得
+        const backlog_style = backlog_style_font || backlog_style_size || backlog_style_color ? `style="${backlog_style_font}${backlog_style_size}${backlog_style_color}"` : "";
+
         // ルビ文字を1文字ずつspanに分割（本文幅を文字数で均等割りした区画の中央にそれぞれ配置するため）
         const rubyTextHtml = rubyText.split("").map(c => `<span>${c}</span>`).join("");
 
-        // ルビ付きHTML（画面表示とバックログの両方で使い回す）
-        const rubyHtml = `<ruby class='auto_ruby'>${rubytargetText}<rt class='auto_rt' ${style}>${rubyTextHtml}</rt></ruby>`;
+        // ルビ付きHTML（画面表示用）
+        // <rt>はブラウザエンジンによって「ルビ注釈用の特殊なボックス」として扱われ、
+        // position:absoluteを指定しても実際のレイアウトには反映されない（position:staticのまま
+        // 扱われる）実装が存在するため、通常の<span>でルビ文字を表現する
+        const rubyHtml = `<ruby class='auto_ruby'>${rubytargetText}<span class='auto_rt' ${style}>${rubyTextHtml}</span></ruby>`;
 
-        // 標準の<ruby><rt>要素のまま追加（CSS側でposition:absoluteにして行の高さに影響させないようにする）
+        // ルビ付きHTML（バックログ用。背景色が異なることが多いため、色などを個別指定できるようにしている）
+        const backlogRubyHtml = `<ruby class='auto_ruby'>${rubytargetText}<span class='auto_rt' ${backlog_style}>${rubyTextHtml}</span></ruby>`;
+
         // 縦書き/横書きの判定はCSS側で親の.vertical_textクラス（Tyranoが動的に管理）を見て行うため、
         // ここではクラスを固定しない（あとから[position vertical=...]で切り替わった場合も追従させるため）
         $(rubyTargetChars).append(rubyHtml)
@@ -467,7 +551,7 @@
 
               const closingTags = match[1];
               const cutIndex = last_log.length - match[0].length;
-              last_log = last_log.slice(0, cutIndex) + rubyHtml + closingTags;
+              last_log = last_log.slice(0, cutIndex) + backlogRubyHtml + closingTags;
 
             }
 
